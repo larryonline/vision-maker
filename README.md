@@ -10,14 +10,15 @@ Vision Maker 是一个遵循 [Agent Skills 开放规范](https://github.com/anth
 
 传统文档面临四大困境：零散分布缺乏体系、与代码脱节静态腐化、难以被智能体消费、开发者无法快速导航知识。Vision Maker 通过「认知框架 = 思维模型 + 方法论 + 项目元知识」的三要素架构来系统性地解决这些问题。
 
-## 四种运行模式
+## 运行模式
 
-| 模式 | 触发条件 | 核心职责 |
-|------|---------|---------|
-| **INIT** | 新项目 / 新模块 / 元知识更新 | 采集项目信息，建立 `.vision/` 文档体系 |
-| **BRIEF** | 开发/调试/审查需要理解项目 | 按任务需求组装知识链并暴露完整上下文 |
-| **MAINTAIN** | 项目内容变更后 | 检测变更影响范围，同步更新文档 |
-| **REVIEW** | 定期或按需评审 | 多维度评审文档质量，输出改进建议 |
+| 模式 | 触发关键词示例 | 核心职责 |
+|------|--------------|---------|
+| **INIT** | "初始化文档"、"建立 .vision"、"用 vision-maker 初始化" | 采集项目元知识，建立文档体系，配置自动化集成 |
+| **BRIEF** | "获取 XX 知识"、"去 .vision 找 XX"、"理解项目" | 按任务需求暴露完整知识链，即时补充盲区 |
+| **AUDIT** | "评审文档质量"、"检查一致性"、"对 .vision 做体检" | 评估文档体系的准确性、完整性、一致性等多维度质量 |
+
+> 文档操作（创建/修改/删除/重组）由 `references/doc-tasks.md` 定义的任务规格处理，而非独立模式。模式是认知框架（教你怎么想），任务规格是执行指南（教你怎么做）。
 
 ## 快速开始
 
@@ -89,24 +90,32 @@ children: [细粒度文档路径]
 
 Skill 针对 7 个认知特征（知识面有限、思维散点化、方法论有限、记忆有限、决策疲劳、锚定偏差、领域专家 ≠ 文档专家）进行动态适配，确保不同背景的用户都能高效协作。
 
+### 项目侧配置自检
+
+任何模式启动前通过 `scripts/validate.sh` 自动检查项目配置，确保 `.vision/` 文档体系与代码保持同步。
+
 ## 项目结构
 
 ```
 vision-maker/
-├── SKILL.md                    # AgentSkill 主入口
-├── references/                 # 各模式的详细参考指南
-│   ├── init-mode.md
-│   ├── brief-mode.md
-│   ├── maintain-mode.md
-│   ├── review-mode.md
-│   ├── front-matter-spec.md
-│   └── user-adaptation.md
-├── assets/templates/           # 文档模板
-│   ├── document-template.md
-│   ├── knowledge-template.md
-│   ├── vision-template.md
-│   └── user-local-template.md
-└── .vision/                    # Skill 自身的文档体系（dogfood）
+├── SKILL.md                        # AgentSkill 主入口
+├── references/                     # 各模式的详细参考指南
+│   ├── init-mode.md                # INIT 模式流程
+│   ├── brief-mode.md               # BRIEF 模式流程
+│   ├── audit-mode.md               # AUDIT 模式流程（含文档维护）
+│   ├── doc-tasks.md                # 文档操作任务规格
+│   ├── doc-methodology.md          # 文档方法论
+│   ├── knowledge-acquisition.md    # 元知识采集指南
+│   └── front-matter-spec.md        # Front-matter 规范
+├── assets/templates/               # 文档模板
+│   ├── document-template.md        # 通用文档模板
+│   ├── knowledge-template.md       # 元知识模板
+│   ├── vision-template.md          # VISION.md 模板
+│   ├── user-local-template.md      # 用户画像模板
+│   └── integration-template.md     # 集成模板
+├── scripts/
+│   └── validate.sh                 # 项目配置验证脚本
+└── .vision/                        # Skill 自身的文档体系（dogfood）
 ```
 
 ## 技术特点
