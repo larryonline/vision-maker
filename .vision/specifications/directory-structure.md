@@ -1,24 +1,22 @@
 ---
-description: ".vision/ 目录的组织规范：元信息层（.meta/）、文档图根节点（VISION.md）、语义化层级目录的命名和职责划分。"
+description: ".vision/ 目录结构规范 — 层级定义、命名约定、版本控制策略"
 type: reference
-concepts: [目录结构, 语义化目录, 元信息层, VISION.md, knowledge.md, user.local.md]
-depends_on:
-  - VISION.md
-children: []
-referenced_by:
-  - skill-design/design-decisions.md
-  - specifications/front-matter-spec.md
+concepts: [directory-structure, semantic-layers, naming-convention, version-control]
+depends_on: [../VISION.md]
+children: [front-matter-spec.md, three-tier-protocol.md]
+referenced_by: [../VISION.md]
 last_verified: 2026-03-27
 ---
 
 # 目录结构规范
 
-## 标准结构
+## 顶层结构
 
 ```
 .vision/
 ├── .meta/                          # 元信息层
 │   ├── knowledge.md                # 项目元知识（纳入版本控制）
+│   ├── integration.md              # 自动化集成配置
 │   └── user.local.md               # 用户个人画像（不纳入版本控制）
 ├── VISION.md                       # 项目顶层文档（文档图根节点）
 └── <layer-name>/                   # 语义化层级目录（由元知识定义）
@@ -29,27 +27,42 @@ last_verified: 2026-03-27
         └── references/             # 附属资源（Tier 3）
 ```
 
-## 关键约定
+## 设计原则
 
-### 元信息层（`.meta/`）
+- **层级目录名称由 knowledge.md 中的文档粒度定义决定**，必须具有语义
+- **版本控制**：`.vision/.meta/*.local.md` 应加入 `.gitignore`
+- **目录命名**：使用小写 + 连字符（如 `auth-system/`）
+- **嵌套深度**：建议不超过 3 层
 
-- `knowledge.md`：项目元知识，驱动 Skill 工作，**纳入版本控制**
-- `user.local.md`：用户画像，**不纳入版本控制**（`.gitignore` 中配置 `.vision/.meta/*.local.md`）
+## .meta/ 层
 
-### 文档图根节点（VISION.md）
+| 文件 | 职责 | 版本控制 |
+|------|------|---------|
+| knowledge.md | 项目元知识 — 行业、领域、概念体系、文档粒度 | 纳入 |
+| integration.md | 自动化集成配置 — hooks、CI、自定义检测规则 | 纳入 |
+| user.local.md | 用户画像 — 知识面、沟通偏好、交互记录 | 不纳入 |
 
-- 文档体系的入口，位于 `.vision/` 根目录
-- front-matter 的 `children` 指向所有顶层文档
-- 消费者从此处开始自顶向下遍历
+## VISION.md
 
-### 语义化层级目录
+文档图的根节点。所有文档的关系最终都直接或间接指向 VISION.md。
 
-- 目录名称由 `knowledge.md` 中的"文档粒度定义"决定
-- 必须具有语义（如 `architecture/`、`modules/`），拒绝无语义命名（如 `L0/`、`L1/`）
-- 不同项目的分层方案不同，由元知识驱动
+功能：
+- 项目概述（是什么、为什么存在、目标与成功标准）
+- 核心概念列表
+- 文档体系导览（各层目录的职责和消费者）
+- 使用指南
 
-### 附属资源（references/）
+## 语义化层级目录
 
-- 存放文档引用的重型内容（图表、schema、长代码示例等）
-- 对应 Tier 3 加载——仅在需要时才读取
-- 位于对应文档的子目录下
+层级目录的名称和职责由 knowledge.md 中的"文档粒度定义"决定。
+
+每个层级应：
+- 有明确的语义（如 `architecture/`、`modules/`、`specifications/`）
+- 有明确的消费者（面向谁）
+- 有明确的认知目标（读者看完应该理解什么）
+
+## ADR 目录
+
+各层级下可包含 `adr/` 目录存放架构决策记录。
+
+命名规范：`NNN-decision-title.md`（如 `001-use-markdown-as-format.md`）

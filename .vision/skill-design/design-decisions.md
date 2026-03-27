@@ -1,65 +1,60 @@
 ---
-description: "vision-maker 的关键设计决策及其理由：为什么选择文档图而非索引、为什么分离元信息层、为什么不限制遍历深度等。"
+description: "Vision Maker 的关键设计决策及其理由 — 为什么选择 Markdown+YAML、为什么分离元信息层、为什么用有向图"
 type: explanation
-concepts: [文档图, 元信息层, 渐进式暴露, 三级加载协议, 语义化目录]
-depends_on:
-  - VISION.md
+concepts: [design-decision, markdown, yaml, directed-graph, meta-layer]
+depends_on: [core-model.md]
 children: []
-referenced_by:
-  - skill-design/core-model.md
-  - skill-design/user-adaptation.md
-  - specifications/front-matter-spec.md
-  - specifications/directory-structure.md
-  - specifications/three-tier-protocol.md
+referenced_by: [../VISION.md]
 last_verified: 2026-03-27
 ---
 
-# 关键设计决策
+# 设计决策
 
-## 决策 1：文档图 vs 全局索引
+## 决策 1：纯 Markdown + YAML
 
-**选择**：文档通过 front-matter 的 `depends_on` / `children` / `referenced_by` 自组织为有向图，不维护全局索引文件。
+**决策**：不使用任何代码依赖，所有文档格式为 Markdown，元数据用 YAML front-matter。
 
 **理由**：
-- 全局索引（如 index.yaml）随文档增长会变成巨型文件，对智能体上下文不友好
-- 索引与文档内容之间存在同步问题——两个 source of truth
-- front-matter 让每份文档自描述、自导航，无需外部依赖
-
-**代价**：没有"一览全局"的快捷方式。通过 VISION.md 作为根节点 + grep 搜索 concepts 弥补。
+- 零依赖意味着任何技术栈都能使用
+- Markdown 是开发者最熟悉的文档格式
+- YAML front-matter 被广泛支持（Jekyll、Hugo、Astro 等）
+- 智能体可以原生解析，无需额外工具
 
 ## 决策 2：元信息层与文档体系分离
 
-**选择**：`.vision/.meta/` 存放指导 Skill 工作的元信息（knowledge.md、user.local.md），与面向消费者的文档体系分开。
+**决策**：`.meta/` 目录存放指导性信息，文档体系面向消费者。
 
 **理由**：
-- 元知识（行业、领域、概念体系）是 Skill 的"工作手册"，不是项目文档的一部分
-- 用户画像是个人文件，不应纳入版本控制
-- 分离后消费者浏览文档体系时不会被元信息干扰
+- knowledge.md 是"如何生成文档"的配方，不是文档本身
+- user.local.md 是工作状态，不应暴露给文档消费者
+- integration.md 是配置，不应混入文档内容
+- 清晰的关注点分离降低认知负担
 
-## 决策 3：三级加载协议控制粒度，关系遍历不设深度限制
+## 决策 3：有向图关系而非树形结构
 
-**选择**：三级加载协议（description → 正文 → 附属资源）只控制单文档内部的加载粒度；BRIEF 模式下沿 `depends_on` 的链路遍历不设深度限制。
-
-**理由**：
-- AgentSkill 的渐进式暴露机制是为小规模技能设计的——几个文件即可覆盖全部功能
-- 项目文档体系可能有数十甚至上百份文档，开发任务需要从设计理由到接口定义到实现约束的**完整知识链**
-- 如果限制遍历深度（如 ≤1），智能体可能拿到接口定义但缺失设计理由，产出质量下降
-- 三级协议已经在单文档层面控制了上下文开销，链路遍历的总开销由任务需求自然决定
-
-## 决策 4：语义化目录命名
-
-**选择**：层级目录由 knowledge.md 中的文档粒度定义决定，名称必须有语义（如 `architecture/`、`modules/`），拒绝无语义命名（如 `L0/`、`L1/`）。
+**决策**：通过 depends_on / children / referenced_by 构建有向图，而非维护全局树形索引。
 
 **理由**：
-- 目录名是人和智能体导航的第一线索
-- `L0/L1` 需要查表才知道含义，语义名称即见即知
-- 不同项目的分层方案不同，由元知识驱动命名更灵活
+- 现实中的知识关系不是纯树形 — 概念间存在横向关联
+- 自描述关系意味着每个文档独立可理解
+- 无需维护全局索引，降低维护成本
+- 支持多路径导航，适应不同使用场景
 
-## 决策 5：Skill 是认知框架，不是文档生成器
+## 决策 4：三级加载协议
 
-**选择**：vision-maker 定位为"帮助人/智能体理解和维护项目的助手"，文档体系是手段而非目的。
+**决策**：Tier 1（description + concepts）→ Tier 2（正文）→ Tier 3（附属资源）。
 
 **理由**：
-- 如果定位为文档生成器，Skill 会倾向于批量生成模板化文档
-- 实际上高质量文档需要对话采集、知识面刻画、散点组织等认知过程
-- "助手"定位确保 Skill 在每个环节都以人的认知需求为中心
+- 智能体的上下文窗口有限，必须控制加载粒度
+- description 是"是否值得加载"的快速判断
+- 正文 < 5000 tokens 保证单文档可一次加载
+- Tier 3 按需加载，避免无用信息占用上下文
+
+## 决策 5：模式与任务规格分离
+
+**决策**：INIT/BRIEF/AUDIT 是认知框架，doc-tasks.md 是执行指南。
+
+**理由**：
+- 模式回答"怎么想"，任务规格回答"怎么做"
+- 分离使得方法论可以独立演进
+- 任务规格可以作为 sub-agent 的系统提示词派发执行

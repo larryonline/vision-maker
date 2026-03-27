@@ -1,65 +1,95 @@
 ---
-description: "文档 front-matter 的完整规范：7 个字段定义、4 种文档类型、3 种关系类型、路径规范和双向一致性规则。"
+description: "文档 front-matter 规范 — 元数据字段定义、关系类型、Diataxis 分类"
 type: reference
-concepts: [front-matter, description, type, concepts, depends_on, children, referenced_by, last_verified, 文档类型, 双向一致性]
-depends_on:
-  - VISION.md
+concepts: [front-matter, yaml, directed-graph, diataxis, document-type]
+depends_on: [directory-structure.md]
 children: []
-referenced_by:
-  - skill-design/design-decisions.md
-  - specifications/directory-structure.md
+referenced_by: [directory-structure.md]
 last_verified: 2026-03-27
 ---
 
-# 文档 Front-matter 规范
+# Front-matter 规范
 
-## 完整字段
+## 字段定义
+
+每份文档（除 knowledge.md 外）通过 YAML front-matter 自描述和自导航：
 
 ```yaml
 ---
 description: "一两句话摘要（< 100 tokens）"
 type: explanation | reference | guide | context
-concepts: [核心概念标签列表]
+concepts: [核心概念标签]
 depends_on: [前置知识文档路径]
 children: [更细粒度文档路径]
 referenced_by: [横向关联文档路径]
-last_verified: 2026-03-26
+last_verified: 2026-03-27
 ---
 ```
 
-| 字段 | 必须 | 用途 |
-|------|:----:|------|
-| `description` | 是 | Tier 1 发现层，供 grep 快速定位 |
-| `type` | 是 | 文档分类，决定写作风格 |
-| `concepts` | 是 | 核心概念标签，用于概念定位和变更影响分析 |
-| `depends_on` | 否 | 知识前置依赖（向上） |
-| `children` | 否 | 细粒度展开（向下） |
-| `referenced_by` | 否 | 非上下级的概念关联（横向） |
-| `last_verified` | 是 | 最后验证日期，供时效性检查 |
+## 字段说明
 
-## 文档类型（Diataxis 框架）
+### description
 
-| 类型 | 语义 | 写作风格 |
-|------|------|---------|
-| `explanation` | 解释概念和原因（为什么） | 叙述性，注重上下文和动机 |
-| `reference` | 精确的事实查阅（是什么） | 结构化，注重准确和完整 |
-| `guide` | 完成特定任务的步骤（怎么做） | 步骤化，注重可操作性 |
-| `context` | 智能体专用的任务上下文 | 精炼，面向机器消费 |
+- 格式：一两句话，概括文档的核心内容和价值
+- 长度：< 100 tokens
+- 用途：Tier 1 加载的快速判断依据
 
-## 路径规范
+### type（Diataxis 分类）
 
-所有路径均为**相对于 `.vision/` 目录的相对路径**。
+| 类型 | 消费场景 | 特征 |
+|------|---------|------|
+| **explanation** | 理解"为什么" | 设计决策、架构理念、背景知识 |
+| **reference** | 查阅"是什么" | API 规范、配置说明、术语表 |
+| **guide** | 学习"怎么做" | 教程、操作步骤、最佳实践 |
+| **context** | 获取背景 | 项目概况、领域介绍、快速上手 |
 
-## 双向一致性规则
+### concepts
 
-- A 的 `children` 含 B → B 的 `depends_on` 必须含 A
-- A 的 `depends_on` 含 B → B 的 `children` 必须含 A
-- A 的 `referenced_by` 含 B → B 的 `referenced_by` 必须含 A
+- 列出 2-5 个核心概念标签
+- 使用领域术语，与项目代码和团队用语一致
+- 粒度适中：不过于宽泛（如"系统"）也不过于细碎（如"变量 x"）
+- 同一概念在不同文档中使用相同标签
 
-## 写作指南
+### depends_on（向上）
 
-**description**：< 100 tokens，不打开文档就能判断相关性，包含关键概念词。
+列出理解本文档必须先了解的文档路径。通常是：
+- 父层的概览文档
+- 直接依赖的模块文档
+- 基础概念文档
 
-**concepts**：使用 knowledge.md 中定义的术语，保持跨文档一致性，粒度适中。
+### children（向下）
 
-完整规范参见 Skill 的 `references/front-matter-spec.md`。
+本文档的更细粒度展开。通常由系统自动填充（当子文档的 depends_on 包含本文档时）。
+
+### referenced_by（横向）
+
+列出引用本文档内容的文档。
+
+## 三种关系类型
+
+```
+depends_on（向上）— "我需要先了解 X 才能理解本文档"
+children（向下）   — "本文档的更细粒度展开"
+referenced_by（横向）— "X 文档引用了本文档的内容"
+```
+
+## 关系规则
+
+1. **depends_on 和 children 是互逆关系**
+   - A 的 children 含 B → B 的 depends_on 必须含 A
+
+2. **referenced_by 是单向的**
+   - A 的 referenced_by 含 B → A 的正文中引用了 B 的概念
+   - B 无需反向标记，除非 B 的正文也引用了 A
+
+3. **depends_on 避免循环依赖**
+
+4. **所有路径相对于 .vision/ 目录**
+
+## 关系校验
+
+在文档创建/修改后，必须校验：
+1. 所有指向的文件是否存在
+2. depends_on / children 互逆关系是否一致
+3. 是否有孤立文档（无任何关系连接）
+4. depends_on 是否有循环

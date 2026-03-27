@@ -1,38 +1,74 @@
 ---
-description: "三级加载协议的完整定义：Tier 1 发现（description+concepts）→ Tier 2 加载（正文）→ Tier 3 深入（附属资源），以及与关系遍历的职责分离。"
+description: "三级加载协议 — 如何通过 Tier 1/2/3 控制智能体的上下文开销"
 type: reference
-concepts: [三级加载协议, 渐进式暴露, Tier 1, Tier 2, Tier 3, 上下文管理]
-depends_on:
-  - VISION.md
+concepts: [three-tier-loading, context-window, token-budget, tier-protocol]
+depends_on: [directory-structure.md]
 children: []
-referenced_by:
-  - skill-design/design-decisions.md
+referenced_by: [directory-structure.md]
 last_verified: 2026-03-27
 ---
 
 # 三级加载协议
 
-## 协议定义
+## 设计目标
 
-控制**单文档内部**的加载粒度：
+控制智能体在消费文档时的上下文开销，避免超出 token 限制。
 
-| 层级 | 内容 | 上下文开销 | 何时加载 |
-|------|------|-----------|---------|
-| **Tier 1 — 发现** | front-matter 的 `description` + `concepts` | ~1-2 行/文档 | BRIEF 策略 B 的概念定位阶段 |
-| **Tier 2 — 加载** | 文档正文（建议 < 5000 tokens） | 受控 | 确定文档与任务相关后 |
-| **Tier 3 — 深入** | 正文引用的附属资源（图表、schema 等） | 按需 | 判断需要详细信息时 |
+## 两级加载粒度
 
-## 与关系遍历的职责分离
+### 文档内部的三级加载
 
-这是一个关键的设计区分：
+| 层级 | 内容 | 上下文开销 | 用途 |
+|------|------|-----------|------|
+| **Tier 1 — 发现** | front-matter 的 description + concepts | 每文档 ~1-2 行 | 概念定位，决定是否继续加载 |
+| **Tier 2 — 加载** | 文档正文 | < 5000 tokens | 获取核心知识 |
+| **Tier 3 — 深入** | 正文引用的附属资源（图表、schema 等） | 按需 | 需要详细信息时按需加载 |
 
-- **三级加载协议**：控制一份文档从"知道它存在"到"深入了解细节"的粒度
-- **关系遍历**（`depends_on` / `children` / `referenced_by`）：控制文档间的导航路径
+### SKILL.md 内部的三级加载
 
-两者是正交的。BRIEF 模式下：
-- 沿 `depends_on` 的链路遍历**不设深度限制**（由任务需求决定）
-- 每份被遍历到的文档按三级协议控制其内部加载粒度
+| 层级 | 内容 | 位置 |
+|------|------|------|
+| Tier 1 | 模式概览 + 触发关键词 | SKILL.md description |
+| Tier 2 | 模式路由 + 响应协议摘要 + 自检流程 + doc-tasks 路由入口 | SKILL.md body（< 500 行） |
+| Tier 3 | 模式详细流程、方法论、任务规格 | references/ 或 项目文件 |
 
-## 设计理由
+## 加载策略
 
-AgentSkill 的渐进式暴露是为小规模技能设计的。项目文档体系可能有大量文档，开发任务需要完整知识链。三级协议在单文档层面已经控制了上下文开销，链路遍历的总开销由任务需求自然决定。
+### 发现阶段（Tier 1）
+
+智能体扫描所有文档的 front-matter，通过 description 和 concepts 识别与当前任务相关的文档。
+
+成本极低 — 每文档仅需 ~1-2 行。
+
+### 加载阶段（Tier 2）
+
+加载被识别为相关的文档正文。正文应控制在 < 5000 tokens 以内。
+
+### 深入阶段（Tier 3）
+
+当正文信息不够时，按需加载附属资源（如图表、schema、详细流程图）。
+
+附属资源放在文档同目录下的 references/ 子目录。
+
+## 深度限制
+
+- **BRIEF 模式**：文档间的关系遍历不设深度限制。沿 depends_on 完整上溯获取知识链，加载范围由任务需求决定。
+- **INIT / AUDIT 模式**：按需加载，由模式的响应协议控制。
+
+## Token 预算
+
+| 文档部位 | 建议大小 | 说明 |
+|---------|---------|------|
+| front-matter | 10-20 行 | 元数据和关系 |
+| description | < 100 tokens | 一两句话摘要 |
+| 正文 | < 5000 tokens | 核心内容 |
+| 附属资源 | 按需 | 图表、schema 等，放在 Tier 3 |
+
+## 拆分策略
+
+当文档超过 token 预算时：
+1. 按关注面拆分：将不同维度的内容拆为独立文档
+2. 按粒度拆分：概览文档 → 详细文档
+3. 提取附属资源：图表、schema 移到 references/ 子目录
+
+拆分后需重建关系字段。
