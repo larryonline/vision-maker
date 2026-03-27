@@ -1,6 +1,8 @@
 ---
 description: "vision-maker 是一个 AgentSkill，为任意软件项目构建和维护对人和智能体都友好的文档体系。"
+type: explanation
 concepts: [AgentSkill, 文档体系, 认知框架, 元知识, 文档图]
+last_verified: 2026-03-27
 children:
   - skill-design/core-model.md
   - skill-design/user-adaptation.md
