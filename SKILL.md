@@ -1,11 +1,11 @@
 ---
 name: vision-maker
 description: >
-  建立、导航、审计或维护项目 .vision/ 文档体系的技能。
-  触发关键词：初始化文档、建立 .vision、获取项目知识、查找 .vision 资料、
-  评审文档质量、检查一致性、文档审计、创建/修改/删除文档、
-  用 vision-maker、vision-maker INIT/BRIEF/AUDIT。
-  适用场景：新项目需文档结构、接入已有项目、代码变更后文档同步、文档质量评估。
+  A skill for building, navigating, auditing, or maintaining a project's .vision/ documentation system.
+  Trigger keywords: initialize docs, set up .vision, acquire project knowledge, search .vision resources,
+  review doc quality, check consistency, doc audit, create/modify/delete documents,
+  use vision-maker, vision-maker INIT/BRIEF/AUDIT.
+  Use cases: new projects needing doc structure, onboarding existing projects, doc sync after code changes, doc quality assessment.
 ---
 
 # Vision Maker
