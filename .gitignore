@@ -1,2 +1,2 @@
-# 用户个人画像（不纳入版本控制）
-.vision/.meta/*.local.md
+# *.local.md 不纳入版本控制
+*.local.md

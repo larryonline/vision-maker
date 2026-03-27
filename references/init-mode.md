@@ -1,4 +1,19 @@
-# INIT 模式 — 建立认知
+# INIT 模式 — 建立文档体系
+
+## 设计定位
+
+引导人和智能体思考"项目需要什么样的文档体系"，并配置自动化守护。
+
+## 响应协议
+
+| 项 | 定义 |
+|---|------|
+| 触发方式 | 人工 / 自检发现无 .vision/ 时引导 |
+| 触发示例 | "为当前项目建立 .vision 文档体系" / "用 vision-maker 初始化这个项目" |
+| 输入 | 项目代码结构 + 对话采集的领域知识 |
+| 执行深度 | 新项目全流程 / 已有项目补建 / 新模块接入 / 元知识更新 |
+| 输出 | .vision/ 文档体系 + .meta/integration.md + hooks/CI 配置（需用户许可） |
+| 衔接 | 推荐 AUDIT 验证 + 告知 BRIEF 使用方式 + 询问是否写入 CLAUDE.md/AGENTS.md |
 
 ## 触发时机
 
@@ -43,6 +58,7 @@ digraph init_routing {
    - 核心使用场景
    - 领域内的关键概念和术语
    - 团队规范、技术栈约束
+   - **领域文档标准**：基于行业和项目类型，主动推导应覆盖的文档关注面（如安全合规、API 端点等）
 
    > 同时根据对话内容初始化 `.vision/.meta/user.local.md`，刻画用户知识面。用户提出的问题 = 暴露未知，用户输入的知识 = 确认已知。
 
@@ -58,9 +74,15 @@ digraph init_routing {
 
 4. **产出 knowledge.md → 人审批**
    使用模板 `assets/templates/knowledge-template.md`，填充采集到的信息。
+   包含领域文档标准章节。
 
 5. **产出 VISION.md → 人审批**
    使用模板 `assets/templates/vision-template.md`，填充项目顶层认知。
+
+6. **配置自动化集成 → 需用户许可**
+   - 创建 `.vision/.meta/integration.md`（使用 integration-template.md）
+   - 询问用户是否配置 pre-commit hook
+   - 如用户许可，创建 hooks/CI workflow 文件
 
 ### 对话引导策略
 
@@ -84,14 +106,14 @@ INIT 阶段的对话遵循用户适配原则：
    列出每层需要哪些文档、每份文档的职责和覆盖的 concepts。
 
 3. **逐份生成文档 → 每份人审批**
-   按优先级逐份生成，每份使用 `assets/templates/document-template.md` 的 front-matter 规范。
+   按优先级逐份生成，引用 [doc-tasks.md §创建文档](doc-tasks.md) 任务规格执行。
 
 4. **建立文档关系**
    填充每份文档的 `depends_on`、`children`、`referenced_by` 字段。
    校验双向一致性：A 的 `children` 含 B，则 B 的 `depends_on` 须含 A。
 
-5. **运行 REVIEW 模式**
-   检查初始文档体系质量。参见 `references/review-mode.md`。
+5. **运行 AUDIT 模式**
+   检查初始文档体系质量。参见 [audit-mode.md](audit-mode.md)。
 
 ## 场景 1.3：已有项目补建
 
@@ -133,4 +155,4 @@ INIT 阶段的对话遵循用户适配原则：
    修改受影响的章节。
 
 2. **评估级联影响**
-   触发 MAINTAIN 模式的场景 3.4（元知识变更级联）。参见 `references/maintain-mode.md`。
+   触发 AUDIT 模式的"元知识变更的级联影响"场景。参见 [audit-mode.md](audit-mode.md)。

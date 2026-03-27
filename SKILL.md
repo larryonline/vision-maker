@@ -1,6 +1,11 @@
 ---
 name: vision-maker
-description: Use when establishing, navigating, maintaining, or reviewing a project's .vision documentation system. Use when a new project needs documentation structure, when onboarding to an existing project, when code changes may require documentation updates, or when documentation quality needs assessment.
+description: >
+  建立、导航、审计或维护项目 .vision/ 文档体系的技能。
+  触发关键词：初始化文档、建立 .vision、获取项目知识、查找 .vision 资料、
+  评审文档质量、检查一致性、文档审计、创建/修改/删除文档、
+  用 vision-maker、vision-maker INIT/BRIEF/AUDIT。
+  适用场景：新项目需文档结构、接入已有项目、代码变更后文档同步、文档质量评估。
 ---
 
 # Vision Maker
@@ -17,37 +22,71 @@ vision-maker = 思维模型 + 方法论（本技能，不变）
 
 本技能不包含任何行业/领域的具体知识。它是一个认知框架——告诉智能体"如何为项目构建和维护文档体系"，而非"该写什么内容"。具体内容由项目元知识驱动。
 
-## 模式选择
+## 路由表
 
-```dot
-digraph mode_selection {
-    rankdir=TB;
-    "任务是什么？" [shape=diamond];
-    "项目有 .vision/ 吗？" [shape=diamond];
-    "INIT" [shape=box, label="INIT 模式\n建立认知\nreferences/init-mode.md"];
-    "任务类型？" [shape=diamond];
-    "BRIEF" [shape=box, label="BRIEF 模式\n支撑开发\nreferences/brief-mode.md"];
-    "MAINTAIN" [shape=box, label="MAINTAIN 模式\n同步认知\nreferences/maintain-mode.md"];
-    "REVIEW" [shape=box, label="REVIEW 模式\n评审质量\nreferences/review-mode.md"];
-
-    "任务是什么？" -> "项目有 .vision/ 吗？";
-    "项目有 .vision/ 吗？" -> "INIT" [label="否"];
-    "项目有 .vision/ 吗？" -> "任务类型？" [label="是"];
-    "任务类型？" -> "BRIEF" [label="需要理解项目\n开发/调试/审查"];
-    "任务类型？" -> "MAINTAIN" [label="代码已变更\n文档需同步"];
-    "任务类型？" -> "REVIEW" [label="检查文档质量"];
-    "任务类型？" -> "INIT" [label="新增模块/\n更新元知识"];
-}
+```
+用户意图                              路由目标
+──────────────────────────────────    ──────────────
+建立文档体系 / 初始化 / 接入          → INIT  (references/init-mode.md)
+获取知识 / .vision 查找资料            → BRIEF (references/brief-mode.md)
+评审质量 / 检查一致性 / 审计           → AUDIT (references/audit-mode.md)
+创建/修改/删除/重组文档                → doc-tasks.md（对应任务规格）
+意图不明确                             → 自检 → 状态诊断 → 推荐模式
 ```
 
-| 模式 | 触发条件 | 核心职责 | 详细流程 |
-|------|---------|---------|---------|
-| **INIT** | 新项目 / 已有项目首次接入 / 新模块 / 元知识更新 | 采集项目元知识，建立文档体系 | [init-mode.md](references/init-mode.md) |
-| **BRIEF** | 需要理解项目以支撑开发、调试、审查等任务 | 按任务需求暴露完整的项目知识链 | [brief-mode.md](references/brief-mode.md) |
-| **MAINTAIN** | 项目内容发生变更后 | 审慎检查变更影响，同步受影响文档 | [maintain-mode.md](references/maintain-mode.md) |
-| **REVIEW** | 需要评估文档质量（定期或手动触发） | 按多维度评审文档体系或单个文档 | [review-mode.md](references/review-mode.md) |
+## 模式概览
 
-各模式的触发方式由项目集成环境决定（人手动触发、CI 集成等），本技能定义"做什么"，不绑定特定触发机制。
+| 模式 | 触发关键词示例 | 核心职责 | 详细流程 |
+|------|--------------|---------|---------|
+| **INIT** | "初始化文档"、"建立 .vision"、"用 vision-maker 初始化" | 采集项目元知识，建立文档体系，配置自动化集成 | [init-mode.md](references/init-mode.md) |
+| **BRIEF** | "获取 XX 知识"、"去 .vision 找 XX"、"理解项目" | 按任务需求暴露完整知识链，即时补充盲区 | [brief-mode.md](references/brief-mode.md) |
+| **AUDIT** | "评审文档质量"、"检查一致性"、"对 .vision 做体检" | 评估文档体系的准确性、完整性、一致性等多维度质量 | [audit-mode.md](references/audit-mode.md) |
+
+> 文档操作（创建/修改/删除/重组）不是独立模式，而是由 [doc-tasks.md](references/doc-tasks.md) 定义的任务规格。模式是认知框架（教你怎么想），任务规格是执行指南（教你怎么做）。
+
+## 项目侧配置自检
+
+**任何模式启动前执行**，通过智能体能力 + `scripts/validate.sh` 完成：
+
+1. `.vision/` 目录存在？
+2. `.meta/knowledge.md` 存在且非空？
+3. `.meta/integration.md` 存在？（自动化集成配置）
+4. 自动化集成就绪？（hooks / CI workflow）
+5. `user.local.md` 中智能体配置完整？
+
+项目可在 `integration.md` 中注册自定义检测规则。如自检发现问题，引导用户先解决。
+
+## 响应协议摘要
+
+每个模式定义了完整的交互契约：
+
+| 项 | INIT | BRIEF | AUDIT |
+|---|------|-------|-------|
+| **触发方式** | 人工 / 自检发现无 .vision/ | 人工 / 智能体研究阶段 | 自动（pre-commit）/ 人工 |
+| **输入** | 项目代码 + 对话采集的领域知识 | 任务描述 + 关联文件 | git diff + 追溯 / 用户指定范围 |
+| **输出** | .vision/ 体系 + integration.md + hooks | 知识链（来源+置信度）+ 盲区标注 | 诊断报告 / pass 标记 |
+| **衔接** | 推荐 AUDIT 验证 + 告知 BRIEF 用法 | 交还控制权 + 盲区行动建议 | 修复提示词 / 下次审计时机 |
+
+详细响应协议见各模式的 reference 文件。
+
+## 衔接协议
+
+每个模式完成后：
+1. 推荐下一步行动
+2. 提供与本次任务相关的 .vision 提示词示例
+3. 如检测到 CLAUDE.md / AGENTS.md 存在，询问用户是否写入 .vision 使用建议（需明确许可）
+
+## 一致性标记
+
+品牌化 commit message footer：
+
+| 场景 | 标记 |
+|------|------|
+| 发现偏差并已对齐 | 🎯 vision-maker 检测到本次提交影响了 {N} 份文档，已帮您完成对齐。 |
+| 审计通过，无需变更 | ✅ vision-maker 已仔细审计本次提交，文档与项目内容完全一致。 |
+| 无受影响文档 | 👁 vision-maker 扫描了本次变更，未发现需要更新的文档。 |
+| 全量审计通过 | 🔍 vision-maker 对本次提交进行了全量审计，所有文档均已与项目保持同步。 |
+| 没有审计的提交 | 无内容, 隐含未审计的情况. 在下次提交审计时自动将未审计的变更纳入审计范围 |
 
 ## 用户适配原则
 
@@ -63,7 +102,7 @@ digraph mode_selection {
 | **锚定偏差** | 主动暴露盲区和替代视角 |
 | **领域专家 ≠ 文档专家** | 引导隐性知识外化为结构化文档 |
 
-详见 [user-adaptation.md](references/user-adaptation.md)
+详见 [knowledge-acquisition.md §对话获取策略](references/knowledge-acquisition.md)
 
 ## `.vision/` 目录结构
 
@@ -71,6 +110,7 @@ digraph mode_selection {
 .vision/
 ├── .meta/                          # 元信息层
 │   ├── knowledge.md                # 项目元知识（纳入版本控制）
+│   ├── integration.md              # 自动化集成配置
 │   └── user.local.md               # 用户个人画像（不纳入版本控制）
 ├── VISION.md                       # 项目顶层文档（文档图根节点）
 └── <layer-name>/                   # 语义化层级目录（由元知识定义）
@@ -109,6 +149,12 @@ last_verified: 2026-03-26
 
 ## 三级加载协议
 
+| 层级 | 内容 | 位置 |
+|------|------|------|
+| Tier 1 | 模式概览 + 触发关键词 | SKILL.md description |
+| Tier 2 | 模式路由 + 响应协议摘要 + 自检流程 + doc-tasks 路由入口 | SKILL.md body（< 500 行） |
+| Tier 3 | 模式详细流程、方法论、任务规格 | references/ 或 项目文件 |
+
 控制**单文档内部**的加载粒度，而非文档间的遍历深度：
 
 | 层级 | 内容 | 上下文开销 |
@@ -125,8 +171,7 @@ last_verified: 2026-03-26
 
 - **INIT**：智能体引导对话采集信息 → 人确认元知识和文档蓝图
 - **BRIEF**：智能体自主组装上下文 → 人/智能体消费
-- **MAINTAIN**：智能体检测变更并提出修改建议 → 人审批
-- **REVIEW**：智能体执行评审 → 人确认评审结论和改进措施
+- **AUDIT**：智能体执行评估 → 人确认结论和修复措施
 
 ## 设计原则
 
@@ -140,4 +185,13 @@ last_verified: 2026-03-26
 | **三级加载控制上下文** | description → 正文 → 附属资源 |
 | **关系遍历不设深度限制** | 按任务需求完整加载知识链 |
 | **语义化组织** | 目录名由元知识定义，反映项目认知粒度 |
-| **文档与项目始终一致** | MAINTAIN 确保文档是活的 |
+| **思考与执行分离** | 模式是认知框架，任务规格是执行指南 |
+| **文档与项目始终一致** | AUDIT 确保文档是活的 |
+
+## 方法论引用文件
+
+| 文件 | 职责 |
+|------|------|
+| [knowledge-acquisition.md](references/knowledge-acquisition.md) | 知识获取与管理方法论：研究策略、追溯策略、置信度框架、对话获取、知识回流 |
+| [doc-methodology.md](references/doc-methodology.md) | 文档工程方法论：结构标准、大小控制、关系建立、concepts 规范、层级原则 |
+| [doc-tasks.md](references/doc-tasks.md) | 文档操作任务规格：创建文档、修复文档等可执行单元 |

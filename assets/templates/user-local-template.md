@@ -25,3 +25,16 @@ last_updated:
 ## 交互记录摘要
 
 <!-- 关键讨论结论的简要索引，帮助跨会话恢复上下文 -->
+
+## 智能体配置
+
+<!-- 当智能体作为使用者时的配置信息 -->
+
+```yaml
+agent:
+  platform: ""          # Claude Code / Cursor / Copilot 等
+  capabilities: []      # 支持的能力：sub-agent, hooks, CI 等
+  preferences:
+    auto_audit: false   # 是否在提交时自动审计
+    brief_depth: full   # BRIEF 默认深度：minimal / standard / full
+```
