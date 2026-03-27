@@ -76,15 +76,11 @@ depends_on:
   - /Users/xxx/.vision/architecture/system-overview.md
 ```
 
-### 双向一致性
-
-关系字段必须保持双向一致：
+### 一致性校验
 
 - A 的 `children` 含 B → B 的 `depends_on` 必须含 A
 - A 的 `depends_on` 含 B → B 的 `children` 必须含 A
-- `referenced_by` 是双向的：A 的 `referenced_by` 含 B → B 的 `referenced_by` 必须含 A
-
-MAINTAIN 模式在执行修正时校验，REVIEW 模式在评审时检测。
+- `referenced_by` 是单向的：A 的 `referenced_by` 含 B 仅表示 A 的正文中引用了 B 的概念，B 无需反向标记, 除非 B 在正文中也引用了 A 
 
 ## description 写作指南
 

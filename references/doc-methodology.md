@@ -64,12 +64,12 @@ referenced_by（横向）— "X 文档引用了本文档的内容"
    - A 的 `children` 含 B → B 的 `depends_on` 必须含 A
    - 反之亦然
 
-2. **referenced_by 是双向的**
-   - A 的 `referenced_by` 含 B → B 的 `referenced_by` 应含 A（除非 B 不存在）
+2. **referenced_by 是单向的**
+   - A 的 `referenced_by` 含 B → 表示 A 的正文中引用了 B 的概念
+   - B 无需反向标记，除非 B 的正文也引用了 A
 
-3. **避免循环依赖**
+3. **depends_on 和 children 避免循环依赖**
    - `depends_on` 不应形成环
-   - `referenced_by` 允许环（表示概念间的强关联）
 
 4. **最小关系原则**
    - 只建立真正有导航价值的关系
@@ -81,7 +81,7 @@ referenced_by（横向）— "X 文档引用了本文档的内容"
 
 ```
 1. 所有指向的文件是否存在？
-2. 双向关系是否一致？
+2. depends_on / children 互逆关系是否一致？
 3. 是否有孤立文档（无任何关系连接）？
 4. depends_on 是否有循环？
 ```
